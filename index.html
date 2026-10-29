@@ -5,11 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>依頼書</title>
   <style>
-    html, body { margin: 0; height: 100%; }
+    /* PC表示の倍率（0.67 = 67%）。小さくしたい場合は 0.6、大きくしたい場合は 0.75 などに変更 */
+    :root { --zoom: 0.67; }
+    html, body { margin: 0; height: 100%; overflow: hidden; }
     iframe { border: 0; width: 100%; height: 100%; display: block; }
+    /* PC（画面幅769px以上）のみ縮小。スマホは従来どおり */
+    @media (min-width: 769px) {
+      iframe {
+        width: calc(100% / var(--zoom));
+        height: calc(100% / var(--zoom));
+        transform: scale(var(--zoom));
+        transform-origin: 0 0;
+      }
+    }
   </style>
 </head>
 <body>
+  <script>
+    // 依頼者情報の記憶：アプリ（iframe内）からの保存・読込依頼を、このページのlocalStorageで受ける
+    window.addEventListener('message', function (e) {
+      if (!/^https:\/\/([a-z0-9-]+\.)*(googleusercontent\.com|script\.google\.com)$/.test(e.origin)) return;
+      var m = e.data;
+      if (!m || typeof m !== 'object') return;
+      if (m.type === 'asbestos_get') {
+        var d = '';
+        try { d = localStorage.getItem('asbestos_user_info') || ''; } catch (x) {}
+        e.source.postMessage({ type: 'asbestos_data', data: d }, e.origin);
+      } else if (m.type === 'asbestos_set' && typeof m.data === 'string') {
+        try { localStorage.setItem('asbestos_user_info', m.data); } catch (x) {}
+      }
+    });
+  </script>
   <iframe src="https://script.google.com/macros/s/AKfycbwEsRS0mU5spE5cf-vwKOtR61AQCJ_4G8ojGhbfJrkZKEzGo-H_PNaiDVCt8bVVPsRY/exec"></iframe>
 </body>
 </html>
